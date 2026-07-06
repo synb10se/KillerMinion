@@ -3254,589 +3254,589 @@ def main() -> int:
         )
         return 0
 
-    if args.command == "direct-login-remote-ctl-dry-run":
-        credentials = load_credentials(args)
-        if not client.client_cert:
-            raise SystemExit(
-                "direct-login-remote-ctl-dry-run braucht --cert-file/--key-file mit dem statischen App-Zertifikat."
-            )
-        login_data, login_meta, account_client = login_with_static_cert(
-            static_client=client,
-            credentials=credentials,
-            account_p12_password=args.account_p12_password,
-        )
 
-        candidate_bodies = (
-            [{"name": "explicit", "body": args.payload}]
-            if args.payload is not None
-            else build_remote_ctl_candidate_bodies(
-                vin=args.vin,
-                action=args.action,
-                car_id=args.car_id,
-                content_type=args.content_type,
-            )
-        )
-        header_variants = []
-        for candidate in candidate_bodies:
-            headers, sign_input = build_remote_ctl_headers(
-                account_client,
-                sign_mode=args.sign_mode,
-                vin=args.vin,
-                user_id=str(login_data["id"]),
-            )
-            headers.update(
-                {
-                    "Content-Type": args.content_type,
-                    "userId": str(login_data["id"]),
-                    "token": login_data["token"],
-                }
-            )
-            header_variants.append(
-                {
-                    "name": candidate["name"],
-                    "method": "POST",
-                    "url": (
-                        f"{account_client.config.base_url.rstrip('/')}"
-                        "/carownerservice/oversea/vehicle/v1/app/remote/ctl"
-                    ),
-                    "headers": headers,
-                    "sign_input": sign_input,
-                    "body": candidate["body"],
-                }
-            )
 
-        print_json(
-            {
-                "safety": {
-                    "dry_run": True,
-                    "remote_ctl_sent": False,
-                    "note": "Only login was sent. No /vehicle/v1/app/remote/ctl request was executed.",
-                },
-                "login": {
-                    "status_code": login_meta["status_code"],
-                    "request": login_meta["request"],
-                    "body_code": parse_json_body(login_meta["body"]).get("code"),
-                    "user_id": str(login_data["id"]),
-                },
-                "remote_ctl_hypothesis": {
-                    "endpoint": "/carownerservice/oversea/vehicle/v1/app/remote/ctl",
-                    "sign_mode": args.sign_mode,
-                    "action": args.action,
-                    "vin": args.vin,
-                    "car_id": args.car_id,
-                    "content_type": args.content_type,
-                    "requests": header_variants,
-                },
-            }
-        )
-        return 0
 
-    if args.command == "direct-login-unlock-dry-run":
-        credentials = load_credentials(args)
-        if not client.client_cert:
-            raise SystemExit(
-                "direct-login-unlock-dry-run braucht --cert-file/--key-file mit dem statischen App-Zertifikat."
-            )
-        login_data, login_meta, account_client = login_with_static_cert(
-            static_client=client,
-            credentials=credentials,
-            account_p12_password=args.account_p12_password,
-        )
-        vehicle_binding, vehicle_meta = fetch_vehicle_binding(
-            account_client=account_client,
-            login_data=login_data,
-            vin=args.vin,
-        )
-        unlock_flow = build_verified_unlock_flow(
-            account_client=account_client,
-            login_data=login_data,
-            vin=args.vin,
-            pin=args.pin,
-        )
-        print_json(
-            {
-                "safety": {
-                    "dry_run": True,
-                    "vehicle_action_sent": False,
-                    "note": "Only login was sent. operPwd/verify and remote/ctl were not executed.",
-                },
-                "login": {
-                    "status_code": login_meta["status_code"],
-                    "request": login_meta["request"],
-                    "body_code": parse_json_body(login_meta["body"]).get("code"),
-                    "user_id": str(login_data["id"]),
-                },
-                "vehicle_binding": {
-                    "vehicle": vehicle_binding,
-                    "meta": vehicle_meta,
-                },
-                "unlock_flow": unlock_flow,
-            }
-        )
-        return 0
 
-    if args.command == "direct-login-unlock":
-        if not args.execute:
-            raise SystemExit(
-                "direct-login-unlock ist absichtlich gesperrt. Nutze --execute nur nach expliziter Ruecksprache."
-            )
-        credentials = load_credentials(args)
-        if not client.client_cert:
-            raise SystemExit(
-                "direct-login-unlock braucht --cert-file/--key-file mit dem statischen App-Zertifikat."
-            )
-        login_data, login_meta, account_client = login_with_static_cert(
-            static_client=client,
-            credentials=credentials,
-            account_p12_password=args.account_p12_password,
-        )
-        vehicle_binding, vehicle_meta = fetch_vehicle_binding(
-            account_client=account_client,
-            login_data=login_data,
-            vin=args.vin,
-        )
-        unlock_flow = build_verified_unlock_flow(
-            account_client=account_client,
-            login_data=login_data,
-            vin=args.vin,
-            pin=args.pin,
-        )
-        result = execute_verified_unlock_flow(
-            account_client=account_client,
-            unlock_flow=unlock_flow,
-            static_session_client=build_static_session_client(static_client=client, login_data=login_data),
-            login_data=login_data,
-        )
-        print_json(
-            {
-                "safety": {
-                    "dry_run": False,
-                    "vehicle_action_sent": True,
-                    "note": "Live unlock flow executed because --execute was provided.",
-                },
-                "login": {
-                    "status_code": login_meta["status_code"],
-                    "request": login_meta["request"],
-                    "body_code": parse_json_body(login_meta["body"]).get("code"),
-                    "user_id": str(login_data["id"]),
-                },
-                "vehicle_binding": {
-                    "vehicle": vehicle_binding,
-                    "meta": vehicle_meta,
-                },
-                "unlock_flow_result": result,
-            }
-        )
-        return 0
 
-    if args.command == "direct-login-lock-dry-run":
-        credentials = load_credentials(args)
-        if not client.client_cert:
-            raise SystemExit(
-                "direct-login-lock-dry-run braucht --cert-file/--key-file mit dem statischen App-Zertifikat."
-            )
-        login_data, login_meta, account_client = login_with_static_cert(
-            static_client=client,
-            credentials=credentials,
-            account_p12_password=args.account_p12_password,
-        )
-        vehicle_binding, vehicle_meta = fetch_vehicle_binding(
-            account_client=account_client,
-            login_data=login_data,
-            vin=args.vin,
-        )
-        lock_flow = build_verified_action_flow(
-            account_client=account_client,
-            login_data=login_data,
-            vin=args.vin,
-            pin=args.pin,
-            action="lock",
-        )
-        print_json(
-            {
-                "safety": {
-                    "dry_run": True,
-                    "vehicle_action_sent": False,
-                    "note": "Only login was sent. operPwd/verify and remote/ctl were not executed.",
-                },
-                "login": {
-                    "status_code": login_meta["status_code"],
-                    "request": login_meta["request"],
-                    "body_code": parse_json_body(login_meta["body"]).get("code"),
-                    "user_id": str(login_data["id"]),
-                },
-                "vehicle_binding": {
-                    "vehicle": vehicle_binding,
-                    "meta": vehicle_meta,
-                },
-                "lock_flow": lock_flow,
-            }
-        )
-        return 0
 
-    if args.command == "direct-login-lock":
-        if not args.execute:
-            raise SystemExit(
-                "direct-login-lock ist absichtlich gesperrt. Nutze --execute nur nach expliziter Ruecksprache."
-            )
-        credentials = load_credentials(args)
-        if not client.client_cert:
-            raise SystemExit(
-                "direct-login-lock braucht --cert-file/--key-file mit dem statischen App-Zertifikat."
-            )
-        login_data, login_meta, account_client = login_with_static_cert(
-            static_client=client,
-            credentials=credentials,
-            account_p12_password=args.account_p12_password,
-        )
-        vehicle_binding, vehicle_meta = fetch_vehicle_binding(
-            account_client=account_client,
-            login_data=login_data,
-            vin=args.vin,
-        )
-        lock_flow = build_verified_action_flow(
-            account_client=account_client,
-            login_data=login_data,
-            vin=args.vin,
-            pin=args.pin,
-            action="lock",
-        )
-        result = execute_verified_action_flow(
-            account_client=account_client,
-            action_flow=lock_flow,
-            static_session_client=build_static_session_client(static_client=client, login_data=login_data),
-            login_data=login_data,
-        )
-        print_json(
-            {
-                "safety": {
-                    "dry_run": False,
-                    "vehicle_action_sent": True,
-                    "note": "Live lock flow executed because --execute was provided.",
-                },
-                "login": {
-                    "status_code": login_meta["status_code"],
-                    "request": login_meta["request"],
-                    "body_code": parse_json_body(login_meta["body"]).get("code"),
-                    "user_id": str(login_data["id"]),
-                },
-                "vehicle_binding": {
-                    "vehicle": vehicle_binding,
-                    "meta": vehicle_meta,
-                },
-                "lock_flow_result": result,
-            }
-        )
-        return 0
 
-    if args.command == "direct-login-climate-dry-run":
-        credentials = load_credentials(args)
-        if not client.client_cert:
-            raise SystemExit(
-                "direct-login-climate-dry-run braucht --cert-file/--key-file mit dem statischen App-Zertifikat."
-            )
-        login_data, login_meta, account_client = login_with_static_cert(
-            static_client=client,
-            credentials=credentials,
-            account_p12_password=args.account_p12_password,
-        )
-        vehicle_binding, vehicle_meta = fetch_vehicle_binding(
-            account_client=account_client,
-            login_data=login_data,
-            vin=args.vin,
-        )
-        climate_flow = build_verified_climate_flow(
-            account_client=account_client,
-            login_data=login_data,
-            vin=args.vin,
-            pin=args.pin,
-            action=args.action,
-        )
-        print_json(
-            {
-                "safety": {
-                    "dry_run": True,
-                    "vehicle_action_sent": False,
-                    "note": "Only login was sent. operPwd/verify and remote/ctl were not executed.",
-                },
-                "login": {
-                    "status_code": login_meta["status_code"],
-                    "request": login_meta["request"],
-                    "body_code": parse_json_body(login_meta["body"]).get("code"),
-                    "user_id": str(login_data["id"]),
-                },
-                "vehicle_binding": {
-                    "vehicle": vehicle_binding,
-                    "meta": vehicle_meta,
-                },
-                "climate_flow": climate_flow,
-            }
-        )
-        return 0
 
-    if args.command == "direct-login-climate":
-        if not args.execute:
-            raise SystemExit(
-                "direct-login-climate ist absichtlich gesperrt. Nutze --execute nur nach expliziter Ruecksprache."
-            )
-        credentials = load_credentials(args)
-        if not client.client_cert:
-            raise SystemExit(
-                "direct-login-climate braucht --cert-file/--key-file mit dem statischen App-Zertifikat."
-            )
-        login_data, login_meta, account_client = login_with_static_cert(
-            static_client=client,
-            credentials=credentials,
-            account_p12_password=args.account_p12_password,
-        )
-        vehicle_binding, vehicle_meta = fetch_vehicle_binding(
-            account_client=account_client,
-            login_data=login_data,
-            vin=args.vin,
-        )
-        climate_flow = build_verified_climate_flow(
-            account_client=account_client,
-            login_data=login_data,
-            vin=args.vin,
-            pin=args.pin,
-            action=args.action,
-        )
-        result = execute_verified_action_flow(
-            account_client=account_client,
-            action_flow=climate_flow,
-            static_session_client=build_static_session_client(static_client=client, login_data=login_data),
-            login_data=login_data,
-        )
-        print_json(
-            {
-                "safety": {
-                    "dry_run": False,
-                    "vehicle_action_sent": True,
-                    "note": "Live climate flow executed because --execute was provided.",
-                },
-                "login": {
-                    "status_code": login_meta["status_code"],
-                    "request": login_meta["request"],
-                    "body_code": parse_json_body(login_meta["body"]).get("code"),
-                    "user_id": str(login_data["id"]),
-                },
-                "vehicle_binding": {
-                    "vehicle": vehicle_binding,
-                    "meta": vehicle_meta,
-                },
-                "climate_flow_result": result,
-            }
-        )
-        return 0
 
-    if args.command == "direct-login-remote-ctl-read-probe":
-        credentials = load_credentials(args)
-        if not client.client_cert:
-            raise SystemExit(
-                "direct-login-remote-ctl-read-probe braucht --cert-file/--key-file mit dem statischen App-Zertifikat."
-            )
-        login_data, login_meta, account_client = login_with_static_cert(
-            static_client=client,
-            credentials=credentials,
-            account_p12_password=args.account_p12_password,
-        )
 
-        candidate_bodies = build_remote_ctl_read_probe_bodies(
-            endpoint=args.endpoint,
-            vin=args.vin,
-            car_id=args.car_id,
-            action=args.action,
-            operation_password=args.operation_password,
-            content_type=args.content_type,
-        )
-        probe_results = []
-        for candidate in candidate_bodies:
-            headers, sign_input = build_operpwd_verify_headers(
-                account_client,
-                vin=args.vin,
-                operation_password=args.operation_password,
-            )
-            headers.update(
-                {
-                    "Content-Type": args.content_type,
-                    "userId": str(login_data["id"]),
-                    "token": login_data["token"],
-                }
-            )
-            path = f"/carownerservice/oversea/vehicle/v1/app/remote/ctl/{args.endpoint}"
-            response = account_client.replay_request_curl(
-                path=path,
-                headers=headers,
-                data=candidate["body"],
-            )
-            probe_results.append(
-                {
-                    "name": candidate["name"],
-                    "request": {
-                        "path": path,
-                        "headers": headers,
-                        "sign_input": sign_input,
-                        "body": candidate["body"],
-                    },
-                    "response": {
-                        "status_code": response["status_code"],
-                        "body": response["body"],
-                        "stderr": response["stderr"],
-                        "returncode": response["returncode"],
-                    },
-                }
-            )
 
-        print_json(
-            {
-                "safety": {
-                    "remote_ctl_sent": False,
-                    "read_probe": True,
-                    "endpoint": args.endpoint,
-                    "note": "Only read-style remote/ctl sub-endpoints were probed. No /remote/ctl write call was sent.",
-                },
-                "login": {
-                    "status_code": login_meta["status_code"],
-                    "request": login_meta["request"],
-                    "body_code": parse_json_body(login_meta["body"]).get("code"),
-                    "user_id": str(login_data["id"]),
-                },
-                "probes": probe_results,
-            }
-        )
-        return 0
 
-    if args.command == "direct-login-operpwd-verify-probe":
-        credentials = load_credentials(args)
-        if not client.client_cert:
-            raise SystemExit(
-                "direct-login-operpwd-verify-probe braucht --cert-file/--key-file mit dem statischen App-Zertifikat."
-            )
-        login_data, login_meta, account_client = login_with_static_cert(
-            static_client=client,
-            credentials=credentials,
-            account_p12_password=args.account_p12_password,
-        )
 
-        candidate_bodies = build_operpwd_verify_probe_bodies(
-            vin=args.vin,
-            car_id=args.car_id,
-            operation_password=args.operation_password,
-            content_type=args.content_type,
-        )
-        probe_results = []
-        for candidate in candidate_bodies:
-            headers, sign_input = build_operpwd_verify_headers(
-                account_client,
-                vin=args.vin,
-                operation_password=args.operation_password,
-            )
-            headers.update(
-                {
-                    "Content-Type": args.content_type,
-                    "userId": str(login_data["id"]),
-                    "token": login_data["token"],
-                }
-            )
-            path = "/carownerservice/oversea/vehicle/v1/operPwd/verify"
-            response = account_client.replay_request_curl(
-                path=path,
-                headers=headers,
-                data=candidate["body"],
-            )
-            probe_results.append(
-                {
-                    "name": candidate["name"],
-                    "request": {
-                        "path": path,
-                        "headers": headers,
-                        "sign_input": sign_input,
-                        "body": candidate["body"],
-                    },
-                    "response": {
-                        "status_code": response["status_code"],
-                        "body": response["body"],
-                        "stderr": response["stderr"],
-                        "returncode": response["returncode"],
-                    },
-                }
-            )
 
-        print_json(
-            {
-                "safety": {
-                    "vehicle_action_sent": False,
-                    "verify_only": True,
-                    "endpoint": "operPwd/verify",
-                    "note": "Only the operation-password verification endpoint was probed. No remote/ctl vehicle action was sent.",
-                },
-                "login": {
-                    "status_code": login_meta["status_code"],
-                    "request": login_meta["request"],
-                    "body_code": parse_json_body(login_meta["body"]).get("code"),
-                    "user_id": str(login_data["id"]),
-                },
-                "probes": probe_results,
-            }
-        )
-        return 0
 
-    if args.command == "direct-login-operpwd-context-probe":
-        credentials = load_credentials(args)
-        if not client.client_cert:
-            raise SystemExit(
-                "direct-login-operpwd-context-probe braucht --cert-file/--key-file mit dem statischen App-Zertifikat."
-            )
-        login_data, login_meta, account_client = login_with_static_cert(
-            static_client=client,
-            credentials=credentials,
-            account_p12_password=args.account_p12_password,
-        )
-        vehicle_binding, vehicle_meta = fetch_vehicle_binding(
-            account_client=account_client,
-            login_data=login_data,
-            vin=args.vin,
-        )
 
-        cert_modes = ["app", "account"] if args.cert_mode == "both" else [args.cert_mode]
-        bootstrap_sequences = args.bootstrap_sequence or ["none"]
-        probe_results = []
-        for cert_mode in cert_modes:
-            for bootstrap_sequence in bootstrap_sequences:
-                probe_results.append(
-                    run_operpwd_context_probe(
-                        static_client=client,
-                        account_client=account_client,
-                        login_data=login_data,
-                        vin=args.vin,
-                        pin=args.pin,
-                        cert_mode=cert_mode,
-                        bootstrap_sequence=bootstrap_sequence,
-                    )
-                )
 
-        print_json(
-            {
-                "safety": {
-                    "vehicle_action_sent": False,
-                    "verify_only": True,
-                    "endpoint": "operPwd/verify",
-                    "note": "Only safe pre-verify bootstrap endpoints and operPwd/verify were executed. No remote/ctl vehicle action was sent.",
-                },
-                "login": {
-                    "status_code": login_meta["status_code"],
-                    "request": login_meta["request"],
-                    "body_code": parse_json_body(login_meta["body"]).get("code"),
-                    "user_id": str(login_data["id"]),
-                },
-                "vehicle_binding": {
-                    "vehicle": vehicle_binding,
-                    "meta": vehicle_meta,
-                },
-                "probes": probe_results,
-            }
-        )
-        return 0
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     if args.command == "carpicture-generated":
         body_vin = ""

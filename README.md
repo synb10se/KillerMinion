@@ -32,6 +32,8 @@ Gehe oben auf den Reiter **Actions**.
 
 ---
 
-## Haftungsausschluss / Sicherheit
-Durch diese Methode (GitHub Secrets) liegen Deine Zugangsdaten verschlüsselt auf den Servern von Microsoft/GitHub. Weder der Entwickler dieses Skripts noch andere Dritte haben Zugriff darauf. Auch wenn das Repository "Public" ist, kann niemand im Internet Deine Passwörter auslesen.
-Da die Leapmotor-API keinen "Nur-Lese"-Zugriff anbietet, nutzt das Skript den vollen Login. Die Nutzung erfolgt auf eigene Gefahr.
+## Sicherheit & Privatsphäre
+- **Verschlüsselte Zugangsdaten:** Durch die Nutzung von GitHub Secrets liegen Deine Zugangsdaten (E-Mail, Passwort, Token) stark verschlüsselt auf den Servern von Microsoft/GitHub. Selbst wenn dieses Repository "Public" ist, kann niemand im Internet Deine Passwörter auslesen (auch Du selbst nicht mehr nach dem Speichern).
+- **Keine Fernsteuerung möglich:** Um Deine Sicherheit zu garantieren, wurden in diesem Fork alle Funktionen zur Fernsteuerung (Auto aufschließen, Klimaanlage starten) aus dem Code des `leapmotor_client.py` **restlos entfernt**. Dieses Skript kann Deine Daten nur **lesen** (Read-Only Prinzip).
+- **Zertifikate & API:** Da die Leapmotor-API keinen echten "Nur-Lese"-Login anbietet, nutzt das Skript Deinen regulären Login. Die benötigten App-Zertifikate werden dynamisch aus einem öffentlichen Mirror geladen und sind nicht mehr Teil dieses Repositories.
+- **Haftungsausschluss:** Die Nutzung erfolgt auf eigene Gefahr. Weder der Entwickler dieses Skripts noch GitHub übernehmen Haftung für gesperrte Accounts oder unerwartetes Verhalten der inoffiziellen Leapmotor API.

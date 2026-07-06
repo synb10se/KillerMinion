@@ -8,6 +8,13 @@ on:
     - cron: '*/5 * * * *'
   workflow_dispatch: # Erlaubt den manuellen Start über die GitHub-Oberfläche
 
+permissions:
+  contents: read
+
+concurrency:
+  group: abrp-sync
+  cancel-in-progress: true
+
 jobs:
   sync_to_abrp:
     runs-on: ubuntu-latest
