@@ -123,6 +123,8 @@ def main():
                 abrp_payload = {k: v for k, v in abrp_payload.items() if v is not None}
                 
                 # Push to ABRP
+                # This is the public open-source ABRP Telemetry API Key (used by TRONITY, Home Assistant etc.)
+                # It identifies the integration client, while the user token in the URL identifies the user account.
                 abrp_api_key = "7310445a-0947-4adc-82f5-29bb882c5926"
                 headers = {"Authorization": f"APIKEY {abrp_api_key}"}
                 params = {"token": args.abrp_token, "tlm": json.dumps(abrp_payload)}
