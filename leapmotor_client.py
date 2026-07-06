@@ -81,8 +81,8 @@ class LeapmotorConfig:
     device_type: str = DEFAULT_DEVICE_TYPE
     p12_enc_alg: str = DEFAULT_P12_ENC_ALG
     sign_key_hex: str = DEFAULT_SIGN_KEY_HEX
-    # Enable TLS verification by default for security
-    verify_tls: bool = True
+    # TLS verification is disabled by default because the endpoint presents an untrusted chain
+    verify_tls: bool = False
     timeout_seconds: float = 20.0
     cert_file: str | None = None
     key_file: str | None = None
@@ -552,10 +552,9 @@ def build_parser() -> argparse.ArgumentParser:
         help="Device ID used in signed headers.",
     )
     parser.add_argument(
-        "--no-verify-tls",
-        action="store_false",
-        dest="verify_tls",
-        help="Disable TLS verification. Verification is enabled by default for security.",
+        "--verify-tls",
+        action="store_true",
+        help="Enable TLS verification. Disabled by default because the endpoint currently presents an untrusted chain in this environment.",
     )
     parser.add_argument(
         "--sign-key-hex",
