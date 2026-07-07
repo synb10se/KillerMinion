@@ -30,6 +30,11 @@ Gehe oben auf den Reiter **Actions**.
 - Klicke links auf **"ABRP Sync Loop"** und dann auf den blauen Button **"Run workflow"**, um den Sync zum ersten Mal manuell zu starten.
 - Ab sofort läuft der Sync vollautomatisch im **5-Minuten-Takt** im Hintergrund!
 
+### 4. Spätere Updates einspielen
+Falls wir in Zukunft Fehler beheben oder das Skript verbessern, kannst Du Updates mit einem Klick einspielen:
+- Gehe im Reiter **Actions** links auf **"Update from Template"**.
+- Klicke auf **"Run workflow"**. Dein Skript holt sich dann automatisch den neuesten Code aus diesem Original-Repository.
+
 ---
 
 ## Sicherheit & Privatsphäre

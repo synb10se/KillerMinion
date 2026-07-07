@@ -1,0 +1,29 @@
+name: Update from Template
+
+on:
+  workflow_dispatch: # Erlaubt den manuellen Start über die GitHub-Oberfläche
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Kompletten Verlauf abrufen, um Merge zu ermöglichen
+      
+      - name: Fetch and Merge Template
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git remote add template https://github.com/kerniger/leapmotor-abrp-sync.git
+          git fetch template
+          
+          # Versuche einen Merge der neuesten Änderungen aus dem Template
+          git merge template/main --allow-unrelated-histories -m "Auto-Update vom Original-Template"
+          
+          # Änderungen pushen
+          git push
