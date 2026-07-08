@@ -1,4 +1,6 @@
 import os
+import sys
+import subprocess
 import time
 import threading
 from http.server import HTTPServer, BaseHTTPRequestHandler
@@ -15,8 +17,11 @@ def run_sync():
     download_certs()
     print("Starte ABRP Sync Loop (5-Minuten-Takt)...", flush=True)
     while True:
-        abrp_token = os.environ.get("ABRP_TOKEN", "")
-        os.system(f'python leapmotor_to_abrp.py --abrp-token "{abrp_token}" --once')
+        subprocess.run(
+            [sys.executable, "leapmotor_to_abrp.py", "--once"],
+            check=False,
+            env=os.environ.copy()
+        )
         time.sleep(300)
 
 class DummyHandler(BaseHTTPRequestHandler):
