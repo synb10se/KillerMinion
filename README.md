@@ -42,7 +42,11 @@ Kostenlose Server bei Render.com schalten sich nach 15 Minuten ab, wenn niemand 
    - **Monitoring Interval:** `10 minutes` (oder 5 minutes)
 4. Klicke auf **"Create Monitor"**.
 
-**Fertig!** UptimeRobot ruft nun rund um die Uhr automatisch deine Render-URL auf. Das Skript läuft dauerhaft im Hintergrund, schickt Deinen Akkustand alle 5 Minuten live an ABRP und **Updates am Code werden von ganz allein installiert!**
+**Fertig!** UptimeRobot ruft nun rund um die Uhr automatisch deine Render-URL auf. Das Skript läuft dauerhaft im Hintergrund und schickt Deinen Akkustand alle 5 Minuten live an ABRP.
+
+### Spätere Updates einspielen
+Da Du das Repository "Public" verknüpft hast, musst Du Updates manuell anstoßen:
+Wenn es neue Funktionen gibt, logge Dich einfach bei Render.com ein, klicke auf Deinen Web Service und drücke oben rechts auf **"Manual Deploy" -> "Deploy latest commit"**.
 
 ---
 
