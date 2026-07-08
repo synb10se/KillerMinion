@@ -50,6 +50,19 @@ Wenn es neue Funktionen gibt, logge Dich einfach bei Render.com ein, klicke auf 
 
 ---
 
+## 💻 Alternative: Self-Hosting (Docker / NAS / Raspberry Pi)
+Wenn Du ohnehin einen eigenen kleinen Server 24/7 am Laufen hast, ist das die beste und stabilste Lösung – komplett ohne Cloud-Abhängigkeiten!
+
+1. Klone dieses Repository auf deinen Server:
+   `git clone https://github.com/kerniger/leapmotor-abrp-sync.git`
+2. Passe die Passwörter in der Datei `docker-compose.yml` an.
+3. Starte den Container im Hintergrund:
+   `docker-compose up -d --build`
+
+Der Container lädt sich automatisch die nötigen Zertifikate und schickt Deine Daten im 5-Minuten-Takt an ABRP.
+
+---
+
 ## Sicherheit & Privatsphäre
 - **Verschlüsselte Zugangsdaten:** Bei Render liegen Deine Umgebungsvariablen stark verschlüsselt auf Enterprise-Servern. Sie tauchen nie öffentlich im Code auf.
 - **Keine Fernsteuerung möglich:** Um Deine Sicherheit zu garantieren, wurden in diesem Skript alle Funktionen zur Fernsteuerung (Auto aufschließen, Klimaanlage starten) aus dem Code **restlos entfernt**. Dieses Skript kann Deine Daten nur **lesen** (Read-Only Prinzip).
