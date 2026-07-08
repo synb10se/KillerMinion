@@ -1,4 +1,21 @@
-custom_components/leapmotor/app_cert.pem
-custom_components/leapmotor/app_key.pem
-__pycache__
-*.pyc
+# credentials / local config
+.env
+.env.*
+LOCAL_ACCESS.md
+
+# certs / keys / extracted account material
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+findings/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# tooling / OS
+.DS_Store

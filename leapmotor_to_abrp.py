@@ -12,7 +12,7 @@ ABRP_URL = "https://api.iternio.com/1/tlm/send"
 def main():
     parser = argparse.ArgumentParser(description="Push Leapmotor telemetry to ABRP")
     parser.add_argument("--vin", required=False, help="Vehicle VIN (optional, auto-detected if not provided)")
-    parser.add_argument("--abrp-token", required=True, help="ABRP User Token")
+    parser.add_argument("--abrp-token", required=False, help="ABRP User Token (or use ABRP_TOKEN env var)")
     parser.add_argument("--username", help="Leapmotor username (or use LEAPMOTOR_USERNAME env var)")
     parser.add_argument("--password", help="Leapmotor password (or use LEAPMOTOR_PASSWORD env var)")
     parser.add_argument("--interval", type=int, default=300, help="Interval in seconds (default 300)")
@@ -21,6 +21,9 @@ def main():
 
     username = args.username or os.environ.get("LEAPMOTOR_USERNAME")
     password = args.password or os.environ.get("LEAPMOTOR_PASSWORD")
+    abrp_token = args.abrp_token or os.environ.get("ABRP_TOKEN")
+    if not abrp_token:
+        parser.error("--abrp-token or ABRP_TOKEN env var is required")
 
     vin = args.vin
     if not vin:
@@ -32,10 +35,7 @@ def main():
             "--key-file", "custom_components/leapmotor/app_key.pem",
             "direct-login-vehicle-list"
         ]
-        if username:
-            cmd_list.extend(["--username", username])
-        if password:
-            cmd_list.extend(["--password", password])
+
             
         list_res = subprocess.run(cmd_list, capture_output=True, text=True)
         if list_res.returncode != 0:
@@ -73,10 +73,7 @@ def main():
         "direct-login-vehicle-summary",
         "--vin", vin
     ]
-    if username:
-        cmd.extend(["--username", username])
-    if password:
-        cmd.extend(["--password", password])
+
 
     masked_vin = f"***{vin[-4:]}" if len(vin) >= 4 else "***"
     print(f"Starting Leapmotor to ABRP bridge for VIN {masked_vin}")
@@ -127,7 +124,7 @@ def main():
                 # Er identifiziert die Integration gegenüber ABRP, während der User-Token den Account bestimmt.
                 abrp_api_key = "7310445a-0947-4adc-82f5-29bb882c5926"
                 headers = {"Authorization": f"APIKEY {abrp_api_key}"}
-                params = {"token": args.abrp_token, "tlm": json.dumps(abrp_payload)}
+                params = {"token": abrp_token, "tlm": json.dumps(abrp_payload)}
                 resp = requests.post(ABRP_URL, headers=headers, params=params, timeout=15)
                 
                 if resp.status_code == 200:
