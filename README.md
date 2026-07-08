@@ -2,45 +2,52 @@
 
 Dieses Projekt verbindet Deinen Leapmotor automatisch mit ABRP (A Better Routeplanner), um Deine aktuellen Fahrzeugdaten (Ladezustand / SoC, Parkstatus, etc.) für eine genaue Navigation zu nutzen.
 
-**Der Clou:** Du musst hierfür keinen eigenen Server oder Raspberry Pi betreiben! Du nutzt einfach dieses kostenlose GitHub Actions Template, welches das Skript automatisch alle 5 Minuten im Hintergrund für Dich ausführt.
+**Die Lösung ohne eigenen Server:** Da die kostenlosen GitHub-Actions sehr unzuverlässig für Live-Daten im Minutentakt sind, nutzt dieses Setup das kostenlose Cloud-Hosting von **Render.com**. Das Skript läuft völlig automatisch in der Cloud und aktualisiert Deinen Ladestand zuverlässig alle 5 Minuten.
 
 ---
 
-## 🚀 Einrichtung in 3 einfachen Schritten
+## 🚀 Einrichtung in 2 simplen Schritten
 
-### 1. Dein eigenes Repository erstellen
-Klicke oben rechts auf den grünen Button **"Use this template"** -> **"Create a new repository"**.
-- Wähle einen Namen für Dein Projekt (z.B. `mein-leapmotor-sync`).
-- **WICHTIG:** Wähle **"Public"** (Öffentlich) aus! GitHub bietet für öffentliche Projekte unendlich viele kostenlose Server-Minuten an. Keine Sorge: Deine Passwörter bleiben über die "Secrets" komplett unsichtbar und verschlüsselt!
-- Klicke auf "Create repository".
+### Schritt 1: Das Skript bei Render starten
+Du musst dafür nichts herunterladen und auch keinen eigenen GitHub Account besitzen!
 
-### 2. Deine Zugangsdaten hinterlegen (Sicher!)
-Gehe in Deinem neu erstellten Repository auf **Settings** -> **Secrets and variables** -> **Actions**.
-Klicke auf **"New repository secret"** und lege nacheinander folgende drei Secrets an:
+1. Gehe auf **[Render.com](https://render.com/)** und erstelle dir einen kostenlosen Account (oder logge dich ein).
+2. Klicke im Dashboard oben rechts auf **"New"** und wähle **"Web Service"**.
+3. Wähle **"Public Git repository"** aus und kopiere diesen Link in das Textfeld:
+   `https://github.com/kerniger/leapmotor-abrp-sync`
+   Klicke dann auf **"Continue"**.
+4. Fülle die Einstellungen wie folgt aus:
+   - **Name:** beliebig (z.B. `leapmotor-abrp`)
+   - **Runtime:** `Python 3`
+   - **Build Command:** `pip install -r requirements.txt`
+   - **Start Command:** `python render_app.py`
+   - **Instance Type:** Ganz unten sicherstellen, dass **"Free"** ($0/month) ausgewählt ist.
+5. Klappe den Bereich **"Advanced"** (oder Environment Variables) auf und klicke auf **"Add Environment Variable"**. Füge folgende drei Passwörter ein:
+   - `LEAPMOTOR_USERNAME` = (Deine E-Mail-Adresse der Leapmotor App)
+   - `LEAPMOTOR_PASSWORD` = (Dein Leapmotor Passwort)
+   - `ABRP_TOKEN` = (Dein ABRP Telemetry Token. In der ABRP App unter "Live-Daten" -> "Verknüpfen" generieren)
+6. Klicke ganz unten auf **"Create Web Service"**.
 
-1. **`LEAPMOTOR_USERNAME`** (Deine E-Mail-Adresse für die Leapmotor App)
-2. **`LEAPMOTOR_PASSWORD`** (Dein Leapmotor Passwort)
-3. **`ABRP_TOKEN`** (Dein ABRP Telemetry Token. In der ABRP App unter Einstellungen -> Fahrzeug -> Live-Daten -> "Verknüpfen" klicken, dort wird ein Token generiert.)
+Render startet nun Dein persönliches Skript. Oben links im Dashboard siehst Du eine URL (z.B. `https://leapmotor-abrp-xyz.onrender.com`). 
 
-*(Die Zertifikate für den Login holt sich das Skript automatisch von einem öffentlichen Mirror. Die VIN sucht sich das Skript beim ersten Login automatisch aus Deinem Account!)*
+### Schritt 2: Den "Schlaf-Modus" austricksen (Wichtig!)
+Kostenlose Server bei Render.com schalten sich nach 15 Minuten ab, wenn niemand die Website besucht. Um den 5-Minuten-Takt von ABRP 24/7 am Leben zu erhalten, nutzen wir einen simplen Trick:
 
-### 3. Den Sync aktivieren
-Gehe oben auf den Reiter **Actions**.
-- GitHub fragt Dich vermutlich, ob Du Workflows aktivieren möchtest. Bestätige mit "I understand my workflows, go ahead and enable them".
-- Klicke links auf **"ABRP Sync Loop"** und dann auf den blauen Button **"Run workflow"**, um den Sync zum ersten Mal manuell zu starten.
-- Ab sofort läuft der Sync vollautomatisch im **5-Minuten-Takt** im Hintergrund!
+1. Kopiere dir die oben genannte URL deines Render-Services.
+2. Gehe auf **[UptimeRobot.com](https://uptimerobot.com/)** und erstelle einen kostenlosen Account.
+3. Klicke auf **"Add New Monitor"**:
+   - **Monitor Type:** `HTTP(s)`
+   - **Friendly Name:** `Render Wachhalter`
+   - **URL (or IP):** *(Hier die Render URL einfügen)*
+   - **Monitoring Interval:** `10 minutes` (oder 5 minutes)
+4. Klicke auf **"Create Monitor"**.
 
-### 4. Spätere Updates einspielen
-Falls wir in Zukunft Fehler beheben oder das Skript verbessern, kannst Du Updates mit einem Klick einspielen:
-- Gehe im Reiter **Actions** links auf **"Update from Template"**.
-- Klicke auf **"Run workflow"**. Dein Skript holt sich dann automatisch den neuesten Code aus diesem Original-Repository.
+**Fertig!** UptimeRobot ruft nun rund um die Uhr automatisch deine Render-URL auf. Das Skript läuft dauerhaft im Hintergrund, schickt Deinen Akkustand alle 5 Minuten live an ABRP und **Updates am Code werden von ganz allein installiert!**
 
 ---
 
 ## Sicherheit & Privatsphäre
-- **Verschlüsselte Zugangsdaten:** Durch die Nutzung von GitHub Secrets liegen Deine Zugangsdaten (E-Mail, Passwort, Token) stark verschlüsselt auf den Servern von Microsoft/GitHub. Selbst wenn dieses Repository "Public" ist, kann niemand im Internet Deine Passwörter auslesen (auch Du selbst nicht mehr nach dem Speichern).
-- **Keine Fernsteuerung möglich:** Um Deine Sicherheit zu garantieren, wurden in diesem Fork alle Funktionen zur Fernsteuerung (Auto aufschließen, Klimaanlage starten) aus dem Code des `leapmotor_client.py` **restlos entfernt**. Dieses Skript kann Deine Daten nur **lesen** (Read-Only Prinzip).
-- **Zertifikate & API:** Da die Leapmotor-API keinen echten "Nur-Lese"-Login anbietet, nutzt das Skript Deinen regulären Login. Die benötigten App-Zertifikate werden dynamisch aus einem öffentlichen Mirror geladen und sind nicht mehr Teil dieses Repositories.
-- **TLS-Zertifikatsprüfung:** Die TLS-Zertifikatsprüfung (`verify_tls`) ist im Skript standardmäßig deaktiviert, da der offizielle Leapmotor-API-Endpunkt (carownerservice) in den meisten Standard-Linux-Umgebungen eine unvollständige oder nicht vertrauenswürdige Zertifikatskette ausliefert und die Abfragen sonst mit einem `SSLError` abbrechen würden. Dies ist eine Besonderheit der Leapmotor-Serverarchitektur.
-
-- **Haftungsausschluss:** Die Nutzung erfolgt auf eigene Gefahr. Weder der Entwickler dieses Skripts noch GitHub übernehmen Haftung für gesperrte Accounts oder unerwartetes Verhalten der inoffiziellen Leapmotor API.
+- **Verschlüsselte Zugangsdaten:** Bei Render liegen Deine Umgebungsvariablen stark verschlüsselt auf Enterprise-Servern. Sie tauchen nie öffentlich im Code auf.
+- **Keine Fernsteuerung möglich:** Um Deine Sicherheit zu garantieren, wurden in diesem Skript alle Funktionen zur Fernsteuerung (Auto aufschließen, Klimaanlage starten) aus dem Code **restlos entfernt**. Dieses Skript kann Deine Daten nur **lesen** (Read-Only Prinzip).
+- **Zertifikate & API:** Da die Leapmotor-API keinen echten "Nur-Lese"-Login anbietet, nutzt das Skript Deinen regulären Login. Die Zertifikate für den Login holt sich das Skript beim Start automatisch.
+- **Haftungsausschluss:** Die Nutzung erfolgt auf eigene Gefahr. Weder der Entwickler dieses Skripts noch die Cloud-Anbieter übernehmen Haftung für gesperrte Accounts oder unerwartetes Verhalten der Leapmotor API.
