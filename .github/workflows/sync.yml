@@ -42,3 +42,4 @@ jobs:
           LEAPMOTOR_PASSWORD: ${{ secrets.LEAPMOTOR_PASSWORD }}
           ABRP_TOKEN: ${{ secrets.ABRP_TOKEN }}
         run: python leapmotor_to_abrp.py --abrp-token "$ABRP_TOKEN" --once
+
